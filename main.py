@@ -1,11 +1,11 @@
 import random
 
-Q1 = ('the start of the Revolutionary War?', 1775)
-Q2 = ('the United States Constitution signed?', 1783)
+Q1 = ('the start of the Revolutionary War', 1775)
+Q2 = ('the United States Constitution signed', 1783)
 Q3 = ('President Lincoln assassinated', 1865)
 Q4 = ("Theodore Roosevelt's first day in office as President of the United States", 1901)
-Q5 = ('the beginning of World War II?', 1939)
-Q6 = ('the Berlin Wall taken down?', 1989)
+Q5 = ('the beginning of World War II', 1939)
+Q6 = ('the Berlin Wall taken down', 1989)
 Q7 = ('the first personal computer introduced', 1975)
 Q8 = ('When was D-Day', 1944)
 Q9 = ('the detonation of the First ' + '\x1B[4m' + 'Hydrogen' + '\x1B[0m' + ' Bomb', 1952)
