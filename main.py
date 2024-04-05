@@ -51,7 +51,7 @@ def startQuiz(questions, index, points):
     if userTry == 'Y' or userTry == 'Yes':
         restartQuiz()
     else:
-        print('Bye bye 🤫🧏')
+        print('Bye bye')
 
 
 def restartQuiz():
