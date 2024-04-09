@@ -1,4 +1,5 @@
 import random
+import tkinter as tk
 
 questions = [
     ('the start of the Revolutionary War', 1775),
@@ -15,6 +16,10 @@ questions = [
 
 points = 0
 game_over = False
+# UI stuff
+question_text = 'Test?'
+hint_text = 'Close!'
+score_text = 'Score: 0'
 
 
 def increment_points(bonus):
@@ -23,31 +28,33 @@ def increment_points(bonus):
 
 
 def check_answer(answer, guess):
+    global hint_text
     if check_range(answer, guess, 0):
-        print('Correct! you got +10 score')
+        hint_text = 'Correct! you got +10 score'
         increment_points(10)
     elif check_range(answer, guess, 5):
-        print(f'Close! You were within 5 years! The correct answer was {answer} you got +5 score')
+        hint_text = f'Close! You were within 5 years! The correct answer was {answer} you got +5 score'
         increment_points(5)
     elif check_range(answer, guess, 10):
-        print(f'Close! You were within 10 years! The correct answer was {answer} you got +2 score')
+        hint_text = f'Close! You were within 10 years! The correct answer was {answer} you got +2 score'
         increment_points(3)
     elif check_range(answer, guess, 20):
-        print(f'Close! You were within 20 years! The correct answer was {answer} you got +1 score')
+        hint_text = f'Close! You were within 20 years! The correct answer was {answer} you got +1 score'
         increment_points(1)
     else:
-        print('incorrect')
+        hint_text = 'incorrect'
 
 
 def ask_question(question, index):
-    print(f'\nScore: {points}     Question {index + 1} of {len(questions)}')
+    global question_text, score_text, hint_text
+    score_text = f'Score: {points}     Question {index + 1} of {len(questions)}'
     isValid = False
     while not isValid:
-        print(f'When was {question[0]}')
+        question_text = f'When was {question[0]}'
         try:
-            answer = input()
+            answer = input()  # change to be UI input
             if len(answer) >= 4:
-                print(f"Invalid year, unless your from the future it's 2024 so try again")
+                hint_text = f"Invalid year, unless your from the future it's 2024 so try again"
             else:
                 check_answer(question[1], int(answer))
                 isValid = True
@@ -61,6 +68,7 @@ def check_range(answer, guess, tolerance):
 
 def start_quiz():
     global game_over
+    create_ui()
     while not game_over:
         random.shuffle(questions)
         for question in questions:
@@ -69,18 +77,61 @@ def start_quiz():
 
 
 def ask_restart_quiz():
-    global points
-    print(f'final score: {points} out of {len(questions) * 10}')
+    global points, hint_text
+    hint_text = f'final score: {points} out of {len(questions) * 10}'
     print('Thank you for playing!\nWould you like to play again? Y/N')
 
-    restart_option = input()
-    restart_option.strip().lower()
-    if restart_option == 'y' or restart_option == 'yes':
+    restart_response = input()  # UI input
+    restart_response.strip().lower()
+    if restart_response == 'y' or restart_response == 'yes':
         points = 0
         return False
     else:
-        print('Bye bye')
+        hint_text = 'Bye bye'
         return True
+
+
+# NumEntry custom widget
+class NumberEntry(tk.Entry):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.config(validate="key", validatecommand=(self.register(self.validate), "%P"))
+
+    def validate(self, new_text):
+        if new_text == "":
+            return True
+        try:
+            float(new_text)
+            return True
+        except ValueError:
+            return False
+
+
+def create_ui():
+    global hint_text, question_text, score_text
+    form = tk.Tk()
+    form.title('A GUI to remember')
+    form.geometry('400x600')
+
+    lblHintText = tk.Label(form, text=score_text)
+    lblHintText.pack()
+
+    lblQuestionText = tk.Label(form, text=question_text)
+    lblQuestionText.pack()
+
+    guessEntry = tk.Entry(form, validate='key', width=4)
+    guessEntry.pack()
+
+    guessButton = tk.Button(form, text='Submit Guess')
+    guessButton.pack()
+
+    form.mainloop()
+
+
+def update_ui():
+    global points, hint_text, question_text, score_text
+    score_text = points.__str__()
+    # update labels with text and clear input field
 
 
 if __name__ == "__main__":
