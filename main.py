@@ -18,13 +18,15 @@ points = 0
 # UI stuff
 form = tk.Tk()
 
-question_text_variable = tk.StringVar(value='')
-hint_text_variable = tk.StringVar(value='')
-score_text_variable = tk.StringVar(value=f"Score: {points}")
 question = ('', 0)
 index = 0
 
-lbl_hint_text = tk.Label(form, textvariable=hint_text_variable)
+question_text_variable = tk.StringVar(value='')
+hint_text_variable = tk.StringVar(value='')
+score_text_variable = tk.StringVar(
+    value=f"Score: {points}              Question: {index + 1} out of {questions.__len__()}")
+
+lbl_hint_text = tk.Label(form, textvariable=hint_text_variable, wraplength=400)
 lbl_question_text = tk.Label(form, textvariable=question_text_variable, wraplength=400)
 entry = tk.Entry(form)
 lbl_score_text = tk.Label(form, textvariable=score_text_variable)
@@ -34,7 +36,7 @@ submit_button = tk.Button(form, text='Submit')
 def increment_points(bonus):
     global points, score_text_variable
     points += bonus
-    score_text_variable.set(f"Score: {points}")
+    score_text_variable.set(f"Score: {points}              Question: {index + 1} out of {questions.__len__()}")
     print(f"{points} points")
 
 
@@ -42,6 +44,7 @@ def check_answer(answer, guess):
     global hint_text_variable
     if check_range(answer, guess, 0):
         increment_points(10)
+        hint_text_variable.set("Correct! you got +10 score")
     elif check_range(answer, guess, 5):
         hint_text_variable.set(f"Close! You were within 5 years! The correct answer was {answer} you got +5 score")
         increment_points(5)
@@ -77,12 +80,26 @@ def check_range(answer, guess, tolerance):
     return abs(answer - guess) <= tolerance
 
 
+def prompt_restart():
+    global hint_text_variable, submit_button
+    hint_text_variable.set(f'final score: {points} out of {len(questions) * 10}\nPress the button to restart the quiz')
+    lbl_score_text.pack_forget()
+    lbl_question_text.pack_forget()
+    entry.pack_forget()
+    submit_button.pack_forget()
+    submit_button = tk.Button(form, text="Restart Quiz", command=restart_quiz)
+
+
 def restart_quiz():
-    global points, hint_text_variable, index
-    hint_text_variable.set(f'final score: {points} out of {len(questions) * 10}')
+    global points, index, questions, submit_button, lbl_hint_text, hint_text_variable
+    submit_button.pack_forget()
+    lbl_hint_text.pack_forget()
+    random.shuffle(questions)
     points = 0
     index = 0
-    return update_ui()
+    submit_button = tk.Button(form, text="Submit", command=submit_answer)
+    hint_text_variable.set('Quiz restarted, good luck!')
+    update_ui()
 
 
 def submit_answer():
@@ -90,42 +107,51 @@ def submit_answer():
     guess = entry.get()
     if check_guess(guess):
         entry.delete(0, 'end')
-        index = index + 1
-        update_question_text(update_question())
-    update_ui()
+        index += 1
+        update_question()
+    if (index != len(questions)):
+        update_ui()
+    else:
+        update_ui_restart()
 
 
 def start_ui_quiz():
-    global form, submit_button, questions
+    global form, submit_button, questions, question
     random.shuffle(questions)
-    question = update_question()
+    update_question()
     form.title('A GUI to remember')
     form.geometry('400x150')
-    update_question_text(question)
+    update_question_text()
 
     submit_button = tk.Button(form, text="Submit Guess", command=submit_answer)
 
     update_ui()
 
+    form.mainloop()
+
 
 def update_question():
-    global questions, index, lbl_question_text, hint_text_variable
+    global questions, index, lbl_question_text, hint_text_variable, question
     if index > questions.__len__() - 1:
-        restart_quiz()
-        return questions[questions.__len__() - 1]
+        prompt_restart()
     else:
-        return questions[index]
+        question = questions[index]
 
 
 def update_ui():
-    global entry, submit_button, lbl_hint_text, lbl_score_text, lbl_question_text, form
+    global entry, submit_button, lbl_hint_text, lbl_score_text, lbl_question_text
+    update_question_text()
     lbl_score_text.pack()
     lbl_question_text.pack()
     entry.pack()
     submit_button.pack()
     lbl_hint_text.pack()
 
-    form.mainloop()
+
+def update_ui_restart():
+    global lbl_hint_text, submit_button
+    submit_button.pack()
+    lbl_hint_text.pack()
 
 
 if __name__ == "__main__":
