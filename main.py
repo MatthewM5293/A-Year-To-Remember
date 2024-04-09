@@ -15,154 +15,117 @@ questions = [
 ]
 
 points = 0
-game_over = False
 # UI stuff
-question_text = 'Test?'
-hint_text = ''
-score_text = 'Score: 0'
+form = tk.Tk()
+
+question_text_variable = tk.StringVar(value='')
+hint_text_variable = tk.StringVar(value='')
+score_text_variable = tk.StringVar(value=f"Score: {points}")
 question = ('', 0)
 index = 0
 
-form = tk.Tk()
-lbl_hint_text = tk.Label(form)
-lbl_question_text = tk.Label(form, text=question_text)
+lbl_hint_text = tk.Label(form, textvariable=hint_text_variable)
+lbl_question_text = tk.Label(form, textvariable=question_text_variable, wraplength=400)
 entry = tk.Entry(form)
-lbl_score_text = tk.Label(form)
-submit_button = tk.Button(form, text='')
+lbl_score_text = tk.Label(form, textvariable=score_text_variable)
+submit_button = tk.Button(form, text='Submit')
 
 
 def increment_points(bonus):
-    global points
+    global points, score_text_variable
     points += bonus
+    score_text_variable.set(f"Score: {points}")
+    print(f"{points} points")
 
 
 def check_answer(answer, guess):
-    global hint_text
+    global hint_text_variable
     if check_range(answer, guess, 0):
-        hint_text = 'Correct! you got +10 score'
         increment_points(10)
     elif check_range(answer, guess, 5):
-        hint_text = f'Close! You were within 5 years! The correct answer was {answer} you got +5 score'
+        hint_text_variable.set(f"Close! You were within 5 years! The correct answer was {answer} you got +5 score")
         increment_points(5)
     elif check_range(answer, guess, 10):
-        hint_text = f'Close! You were within 10 years! The correct answer was {answer} you got +2 score'
+        hint_text_variable.set(f'Close! You were within 10 years! The correct answer was {answer} you got +2 score')
         increment_points(3)
     elif check_range(answer, guess, 20):
-        hint_text = f'Close! You were within 20 years! The correct answer was {answer} you got +1 score'
+        hint_text_variable.set(f'Close! You were within 20 years! The correct answer was {answer} you got +1 score')
         increment_points(1)
     else:
-        hint_text = 'incorrect'
+        hint_text_variable.set('incorrect')
 
 
-def ask_question(question):
-    global question_text
-    question_text = f'When was {question[0]}'  # Update question text
+def update_question_text():
+    global question_text_variable, question
+    question_text_variable.set(f'When was {question[0]}')
 
 
-def check_guess(question, guess):
-    global hint_text
+def check_guess(guess):
+    global hint_text_variable, question
     try:
         if len(guess) != 4 or not guess.isdigit():
-            hint_text = "Invalid year. Please enter a 4-digit number."
+            hint_text_variable.set("Invalid year. Please enter a 4-digit number.")
+            return False
         else:
             check_answer(question[1], int(guess))
+            return True
     except:
-        hint_text = "Try again."
+        hint_text_variable.set("Try again.")
 
 
 def check_range(answer, guess, tolerance):
     return abs(answer - guess) <= tolerance
 
 
-# def start_quiz():
-#     global game_over
-#     while not game_over:
-#         random.shuffle(questions)
-#         for question in questions:
-#             ask_question(question, questions.index(question))
-#         game_over = ask_restart_quiz()
+def restart_quiz():
+    global points, hint_text_variable, index
+    hint_text_variable.set(f'final score: {points} out of {len(questions) * 10}')
+    points = 0
+    index = 0
+    return update_ui()
 
 
-def ask_restart_quiz():
-    global points, hint_text
-    hint_text = f'final score: {points} out of {len(questions) * 10}'
-    print('Thank you for playing!\nWould you like to play again? Y/N')
-
-    restart_response = input()  # UI input
-    restart_response.strip().lower()
-    if restart_response == 'y' or restart_response == 'yes':
-        points = 0
-        return False
-    else:
-        hint_text = 'Bye bye'
-        return True
-
-
-# def create_ui():
-#     global hint_text, question_text, score_text
-#     form = tk.Tk()
-#     form.title('A GUI to remember')
-#     form.geometry('400x600')
-#
-#     lbl_hint_text = tk.Label(form, text=score_text)
-#     lbl_hint_text.pack()
-#
-#     lbl_question_text = tk.Label(form, text=question_text)
-#     lbl_question_text.pack()
-#
-#     guess_entry = tk.Entry(form, validate='key', width=4)
-#     guess_entry.pack()
-#
-#     guessButton = tk.Button(form, text='Submit Guess', command=lambda: ask_question())
-#     guessButton.pack()
-#
-#     form.mainloop()
+def submit_answer():
+    global index
+    guess = entry.get()
+    if check_guess(guess):
+        entry.delete(0, 'end')
+        index = index + 1
+        update_question_text(update_question())
+    update_ui()
 
 
 def start_ui_quiz():
-    global game_over, question_text, score_text, hint_text, form, entry, submit_button, lbl_hint_text, \
-        lbl_score_text, lbl_question_text, question, index
-    question = update_question()
+    global form, submit_button, questions
     random.shuffle(questions)
-    # question = questions[index]
+    question = update_question()
     form.title('A GUI to remember')
-    form.geometry('400x600')
-    ask_question(question)
-
-    score_text = f'Score: {points}'
-
-    lbl_score_text = tk.Label(form, text=score_text)
-    lbl_score_text.pack()
-
-    lbl_question_text = tk.Label(form, text=question_text)
-    lbl_question_text.pack()
-
-    entry = tk.Entry(form)
-    entry.pack()
-
-    def submit_answer():
-        global question, index
-        guess = entry.get()
-        check_guess(question, guess)
-        entry.delete(0, 'end')
-        index = index + 1
-        ask_question(update_question())
+    form.geometry('400x150')
+    update_question_text(question)
 
     submit_button = tk.Button(form, text="Submit Guess", command=submit_answer)
-    submit_button.pack()
 
-    lbl_hint_text = tk.Label(form, text=hint_text)
-    lbl_hint_text.pack()
-
-    form.mainloop()
+    update_ui()
 
 
 def update_question():
-    global questions, game_over, index, lbl_question_text
+    global questions, index, lbl_question_text, hint_text_variable
     if index > questions.__len__() - 1:
-        game_over = True
+        restart_quiz()
+        return questions[questions.__len__() - 1]
     else:
         return questions[index]
+
+
+def update_ui():
+    global entry, submit_button, lbl_hint_text, lbl_score_text, lbl_question_text, form
+    lbl_score_text.pack()
+    lbl_question_text.pack()
+    entry.pack()
+    submit_button.pack()
+    lbl_hint_text.pack()
+
+    form.mainloop()
 
 
 if __name__ == "__main__":
