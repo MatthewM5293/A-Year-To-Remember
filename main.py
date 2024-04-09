@@ -14,10 +14,8 @@ questions = [
     ('YouTube launched', 2005)
 ]
 
-points = 0
-# UI stuff
 form = tk.Tk()
-
+points = 0
 question = ('', 0)
 index = 0
 
@@ -25,7 +23,6 @@ question_text_variable = tk.StringVar(value='')
 hint_text_variable = tk.StringVar(value='')
 score_text_variable = tk.StringVar(
     value=f"Score: {points}              Question: {index + 1} out of {questions.__len__()}")
-
 lbl_hint_text = tk.Label(form, textvariable=hint_text_variable, wraplength=400)
 lbl_question_text = tk.Label(form, textvariable=question_text_variable, wraplength=400)
 entry = tk.Entry(form)
@@ -34,10 +31,9 @@ submit_button = tk.Button(form, text='Submit')
 
 
 def increment_points(bonus):
-    global points, score_text_variable
+    global points, score_text_variable, index
     points += bonus
     score_text_variable.set(f"Score: {points}              Question: {index + 1} out of {questions.__len__()}")
-    print(f"{points} points")
 
 
 def check_answer(answer, guess):
@@ -56,6 +52,7 @@ def check_answer(answer, guess):
         increment_points(1)
     else:
         hint_text_variable.set('incorrect')
+        increment_points(0)
 
 
 def update_question_text():
@@ -64,15 +61,16 @@ def update_question_text():
 
 
 def check_guess(guess):
-    global hint_text_variable, question
+    global hint_text_variable, question, index
     try:
         if len(guess) != 4 or not guess.isdigit():
             hint_text_variable.set("Invalid year. Please enter a 4-digit number.")
             return False
         else:
+            index += 1
             check_answer(question[1], int(guess))
             return True
-    except:
+    except ValueError:
         hint_text_variable.set("Try again.")
 
 
@@ -97,6 +95,8 @@ def restart_quiz():
     random.shuffle(questions)
     points = 0
     index = 0
+    score_text_variable.set(f"Score: {points}              Question: {index + 1} out of {questions.__len__()}")
+
     submit_button = tk.Button(form, text="Submit", command=submit_answer)
     hint_text_variable.set('Quiz restarted, good luck!')
     update_ui()
@@ -107,9 +107,8 @@ def submit_answer():
     guess = entry.get()
     if check_guess(guess):
         entry.delete(0, 'end')
-        index += 1
         update_question()
-    if (index != len(questions)):
+    if index != len(questions):
         update_ui()
     else:
         update_ui_restart()
