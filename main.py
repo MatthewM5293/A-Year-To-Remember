@@ -10,7 +10,7 @@ questions = [
     ('the Berlin Wall taken down', 1989),
     ('the first personal computer introduced', 1975),
     ('When was D-Day', 1944),
-    ('the detonation of the First ' + '\x1B[4m' + 'Hydrogen' + '\x1B[0m' + ' Bomb', 1952),
+    ('the detonation of the First Hydrogen Bomb', 1952),
     ('YouTube launched', 2005)
 ]
 
@@ -18,8 +18,17 @@ points = 0
 game_over = False
 # UI stuff
 question_text = 'Test?'
-hint_text = 'Close!'
+hint_text = ''
 score_text = 'Score: 0'
+question = ('', 0)
+index = 0
+
+form = tk.Tk()
+lbl_hint_text = tk.Label(form)
+lbl_question_text = tk.Label(form, text=question_text)
+entry = tk.Entry(form)
+lbl_score_text = tk.Label(form)
+submit_button = tk.Button(form, text='')
 
 
 def increment_points(bonus):
@@ -45,35 +54,33 @@ def check_answer(answer, guess):
         hint_text = 'incorrect'
 
 
-def ask_question(question, index):
-    global question_text, score_text, hint_text
-    score_text = f'Score: {points}     Question {index + 1} of {len(questions)}'
-    isValid = False
-    while not isValid:
-        question_text = f'When was {question[0]}'
-        try:
-            answer = input()  # change to be UI input
-            if len(answer) >= 4:
-                hint_text = f"Invalid year, unless your from the future it's 2024 so try again"
-            else:
-                check_answer(question[1], int(answer))
-                isValid = True
-        except:
-            print('invalid input, try again')
+def ask_question(question):
+    global question_text
+    question_text = f'When was {question[0]}'  # Update question text
+
+
+def check_guess(question, guess):
+    global hint_text
+    try:
+        if len(guess) != 4 or not guess.isdigit():
+            hint_text = "Invalid year. Please enter a 4-digit number."
+        else:
+            check_answer(question[1], int(guess))
+    except:
+        hint_text = "Try again."
 
 
 def check_range(answer, guess, tolerance):
     return abs(answer - guess) <= tolerance
 
 
-def start_quiz():
-    global game_over
-    create_ui()
-    while not game_over:
-        random.shuffle(questions)
-        for question in questions:
-            ask_question(question, questions.index(question))
-        game_over = ask_restart_quiz()
+# def start_quiz():
+#     global game_over
+#     while not game_over:
+#         random.shuffle(questions)
+#         for question in questions:
+#             ask_question(question, questions.index(question))
+#         game_over = ask_restart_quiz()
 
 
 def ask_restart_quiz():
@@ -91,48 +98,72 @@ def ask_restart_quiz():
         return True
 
 
-# NumEntry custom widget
-class NumberEntry(tk.Entry):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.config(validate="key", validatecommand=(self.register(self.validate), "%P"))
+# def create_ui():
+#     global hint_text, question_text, score_text
+#     form = tk.Tk()
+#     form.title('A GUI to remember')
+#     form.geometry('400x600')
+#
+#     lbl_hint_text = tk.Label(form, text=score_text)
+#     lbl_hint_text.pack()
+#
+#     lbl_question_text = tk.Label(form, text=question_text)
+#     lbl_question_text.pack()
+#
+#     guess_entry = tk.Entry(form, validate='key', width=4)
+#     guess_entry.pack()
+#
+#     guessButton = tk.Button(form, text='Submit Guess', command=lambda: ask_question())
+#     guessButton.pack()
+#
+#     form.mainloop()
 
-    def validate(self, new_text):
-        if new_text == "":
-            return True
-        try:
-            float(new_text)
-            return True
-        except ValueError:
-            return False
 
-
-def create_ui():
-    global hint_text, question_text, score_text
-    form = tk.Tk()
+def start_ui_quiz():
+    global game_over, question_text, score_text, hint_text, form, entry, submit_button, lbl_hint_text, \
+        lbl_score_text, lbl_question_text, question, index
+    question = update_question()
+    random.shuffle(questions)
+    # question = questions[index]
     form.title('A GUI to remember')
     form.geometry('400x600')
+    ask_question(question)
 
-    lblHintText = tk.Label(form, text=score_text)
-    lblHintText.pack()
+    score_text = f'Score: {points}'
 
-    lblQuestionText = tk.Label(form, text=question_text)
-    lblQuestionText.pack()
+    lbl_score_text = tk.Label(form, text=score_text)
+    lbl_score_text.pack()
 
-    guessEntry = tk.Entry(form, validate='key', width=4)
-    guessEntry.pack()
+    lbl_question_text = tk.Label(form, text=question_text)
+    lbl_question_text.pack()
 
-    guessButton = tk.Button(form, text='Submit Guess')
-    guessButton.pack()
+    entry = tk.Entry(form)
+    entry.pack()
+
+    def submit_answer():
+        global question, index
+        guess = entry.get()
+        check_guess(question, guess)
+        entry.delete(0, 'end')
+        index = index + 1
+        ask_question(update_question())
+
+    submit_button = tk.Button(form, text="Submit Guess", command=submit_answer)
+    submit_button.pack()
+
+    lbl_hint_text = tk.Label(form, text=hint_text)
+    lbl_hint_text.pack()
 
     form.mainloop()
 
 
-def update_ui():
-    global points, hint_text, question_text, score_text
-    score_text = points.__str__()
-    # update labels with text and clear input field
+def update_question():
+    global questions, game_over, index, lbl_question_text
+    if index > questions.__len__() - 1:
+        game_over = True
+    else:
+        return questions[index]
 
 
 if __name__ == "__main__":
-    start_quiz()
+    start_ui_quiz()
